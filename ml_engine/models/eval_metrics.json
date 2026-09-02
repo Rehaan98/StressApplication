@@ -1,0 +1,51 @@
+{
+  "accuracy": 0.8633,
+  "precision_macro": 0.8602,
+  "recall_macro": 0.8317,
+  "f1_macro": 0.8445,
+  "roc_auc": 0.9743,
+  "confusion_matrix": [
+    [
+      72,
+      18,
+      0,
+      0
+    ],
+    [
+      12,
+      272,
+      16,
+      0
+    ],
+    [
+      0,
+      16,
+      128,
+      6
+    ],
+    [
+      0,
+      0,
+      14,
+      46
+    ]
+  ],
+  "class_metrics": {
+    "Low": {
+      "support": 90,
+      "accuracy": 0.8
+    },
+    "Moderate": {
+      "support": 300,
+      "accuracy": 0.9067
+    },
+    "High": {
+      "support": 150,
+      "accuracy": 0.8533
+    },
+    "Severe": {
+      "support": 60,
+      "accuracy": 0.7667
+    }
+  }
+}

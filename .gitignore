@@ -1,0 +1,39 @@
+# macOS
+.DS_Store
+._*
+.AppleDouble
+
+# Python
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Databases & editor artifacts (runtime data)
+*.db
+*.sqlite3
+*.sqbpro
+
+# Frontend / Node
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/tsconfig.tsbuildinfo
+npm-debug.log*
+
+# Logs
+*.log
+logs/
+
+# IDE
+.idea/
+.vscode/
+*.swp

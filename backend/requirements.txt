@@ -1,0 +1,26 @@
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+pydantic>=2.6.0
+pydantic-settings>=2.1.0
+email-validator>=2.1.0
+sqlalchemy>=2.0.25
+asyncpg>=0.29.0
+aiosqlite>=0.19.0
+passlib[bcrypt]>=1.7.4
+python-jose[cryptography]>=3.3.0
+python-multipart>=0.0.6
+numpy>=1.26.0
+pandas>=2.2.0
+# ML artifact versions are PINNED: the pre-trained .joblib models in
+# ml_engine/models are serialized with these exact versions and will raise
+# AttributeError/MissingAttributes if loaded with a different sklearn patch.
+scikit-learn==1.6.1
+xgboost==2.1.4
+joblib==1.5.3
+shap>=0.44.0
+lime>=0.2.0.1
+opencv-python-headless>=4.10.0,<5.0
+onnxruntime>=1.17.0
+httpx>=0.26.0,<0.28
+pytest>=8.0.0
+pytest-asyncio>=0.23.0

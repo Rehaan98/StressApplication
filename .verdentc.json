@@ -1,0 +1,7 @@
+{
+  "deploy": {
+    "type": "fullstack",
+    "rootDir": "frontend",
+    "appPort": 3000
+  }
+}

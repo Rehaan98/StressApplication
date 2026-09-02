@@ -1,0 +1,336 @@
+[
+  {
+    "id": "KB-CBT-01",
+    "category": "Cognitive Behavioral Therapy (CBT)",
+    "title": "Cognitive Reframing for Perceived Overwhelm",
+    "target_drivers": [
+      "total_pss",
+      "anxiety_score",
+      "pss_q1",
+      "pss_q3",
+      "pss_q6"
+    ],
+    "summary": "Identify cognitive distortions (catastrophizing, all-or-nothing thinking) and reframe stressful situations into manageable component tasks.",
+    "protocol": [
+      "1. Catch automatic negative thoughts when feeling overwhelmed.",
+      "2. Ask: 'What is the objective evidence for this thought?'",
+      "3. Write down a balanced, realistic alternative scenario.",
+      "4. Break the immediate stressor into a 5-minute action step."
+    ],
+    "evidence_base": "American Psychological Association (APA) CBT Guidelines for Clinical Anxiety & Stress",
+    "difficulty": "Beginner",
+    "duration_min": 10,
+    "target_emotions": [
+      "fear",
+      "anger"
+    ],
+    "stress_levels": [
+      "High",
+      "Severe"
+    ]
+  },
+  {
+    "id": "KB-ANS-02",
+    "category": "Autonomic Nervous System Regulation",
+    "title": "Box Breathing & Vagus Nerve Stimulation",
+    "target_drivers": [
+      "hrv_sdnn",
+      "heart_rate",
+      "hrv_to_hr_ratio",
+      "anxiety_score"
+    ],
+    "summary": "4-4-4-4 rhythm breathing protocol designed to activate the parasympathetic nervous system and increase Heart Rate Variability (HRV).",
+    "protocol": [
+      "1. Inhale deeply through the nose for 4 seconds.",
+      "2. Hold breath gently for 4 seconds.",
+      "3. Exhale fully through mouth for 4 seconds.",
+      "4. Hold empty for 4 seconds. Repeat for 5 cycles."
+    ],
+    "evidence_base": "Journal of Autonomic Neuroscience (2021) - Slow Breathing & HRV Coherence",
+    "difficulty": "Immediate",
+    "duration_min": 5,
+    "target_emotions": [
+      "fear",
+      "surprise",
+      "anger"
+    ],
+    "stress_levels": [
+      "Moderate",
+      "High",
+      "Severe"
+    ]
+  },
+  {
+    "id": "KB-SLP-03",
+    "category": "Sleep Hygiene & Recovery",
+    "title": "Circadian Synchronization & Non-Sleep Deep Rest (NSDR)",
+    "target_drivers": [
+      "sleep_hours",
+      "sleep_efficiency",
+      "sleep_deficiency_index"
+    ],
+    "summary": "Restorative protocol to improve sleep efficiency and reduce nighttime cortisol spikes.",
+    "protocol": [
+      "1. Get 10-15 minutes of direct sunlight within 1 hour of waking.",
+      "2. Discontinue caffeine consumption at least 8 hours prior to sleep.",
+      "3. Keep bedroom temperature cool (65-68°F / 18-20°C).",
+      "4. Perform a 10-minute guided NSDR / Yoga Nidra scan if awake in bed."
+    ],
+    "evidence_base": "Sleep Medicine Reviews - Behavioral Interventions for Stress-Induced Insomnia",
+    "difficulty": "Easy",
+    "duration_min": 15,
+    "target_emotions": [
+      "sadness",
+      "fear"
+    ],
+    "stress_levels": [
+      "Moderate",
+      "High"
+    ]
+  },
+  {
+    "id": "KB-WRK-04",
+    "category": "Workload & Screen Ergonomics",
+    "title": "Pomodoro Ultradian Rhythm & Micro-Rest Breaks",
+    "target_drivers": [
+      "work_hours",
+      "screen_time_hours",
+      "breaks_per_day",
+      "work_stress_factor"
+    ],
+    "summary": "Structures intense focus into 90-minute ultradian cycles followed by non-screen micro-rests to prevent cognitive exhaustion.",
+    "protocol": [
+      "1. Work in focused 50-minute blocks followed by a 10-minute non-screen break.",
+      "2. Stand up, stretch, look at objects 20+ feet away to relax visual accommodation.",
+      "3. Limit total daily continuous screen exposure without breaks.",
+      "4. Establish a hard end-of-workday shutdown ritual."
+    ],
+    "evidence_base": "Ergonomics Journal - Micro-breaks and Occupational Mental Fatigue",
+    "difficulty": "Easy",
+    "duration_min": 10,
+    "target_emotions": [
+      "surprise",
+      "neutral"
+    ],
+    "stress_levels": [
+      "Moderate",
+      "High"
+    ]
+  },
+  {
+    "id": "KB-ACT-05",
+    "category": "Physical Activity & Somatic Discharge",
+    "title": "Aerobic Somatic Tension Release",
+    "target_drivers": [
+      "physical_activity_min",
+      "composite_strain_index",
+      "sentiment_score"
+    ],
+    "summary": "Moderate aerobic movement to metabolize excess stress hormones (cortisol, adrenaline) and boost endorphins.",
+    "protocol": [
+      "1. Perform 20-30 minutes of zone-2 cardio (brisk walking, light cycling, swimming).",
+      "2. Focus on somatic sensations rather than performance metrics.",
+      "3. Perform progressive muscle relaxation (PMR) post-exercise."
+    ],
+    "evidence_base": "Harvard Medical School - Exercise and Stress Neurobiology",
+    "difficulty": "Moderate",
+    "duration_min": 30,
+    "target_emotions": [
+      "sadness",
+      "anger",
+      "disgust"
+    ],
+    "stress_levels": [
+      "Moderate",
+      "High"
+    ]
+  },
+  {
+    "id": "KB-MND-06",
+    "category": "Mindfulness & Affective Regulation",
+    "title": "Mindful Body Scan & Emotional Labeling",
+    "target_drivers": [
+      "sentiment_score",
+      "anxiety_score",
+      "pss_q2",
+      "pss_q10"
+    ],
+    "target_emotions": [
+      "sadness",
+      "fear",
+      "anger"
+    ],
+    "stress_levels": [
+      "High",
+      "Severe",
+      "Moderate"
+    ],
+    "summary": "Reduces amygdala hyper-reactivity by non-judgmentally observing bodily sensations and labeling emotions accurately.",
+    "protocol": [
+      "1. Sit comfortably and scan body from toes to head for physical tension.",
+      "2. Name the emotion ('I am noticing a feeling of anxiety/frustration').",
+      "3. Observe without trying to force immediate change.",
+      "4. Breathe into areas of physical tightness."
+    ],
+    "evidence_base": "NeuroImage - Affect Labeling Mitigates Limbic Reactivity",
+    "difficulty": "Easy",
+    "duration_min": 10
+  },
+  {
+    "id": "KB-ANG-07",
+    "category": "Anger Regulation",
+    "title": "Cool-Down Protocol for Anger & Irritability",
+    "target_drivers": [
+      "anxiety_score",
+      "sentiment_score",
+      "composite_strain_index"
+    ],
+    "target_emotions": [
+      "anger"
+    ],
+    "stress_levels": [
+      "High",
+      "Severe"
+    ],
+    "summary": "Immediate physiological de-escalation for facial expressions signalling anger, using paced exhalation and cognitive distancing.",
+    "protocol": [
+      "1. Stop what you are doing and stand or sit with both feet grounded.",
+      "2. Inhale for 2 counts, exhale for 6 counts (longer exhalation calms the fight-or-flight response).",
+      "3. Repeat 6-8 cycles while clenching and releasing fists.",
+      "4. Ask: 'Will this matter in 24 hours?' then choose a response, not a reaction."
+    ],
+    "evidence_base": "Frontiers in Psychology - Anger Management & Slow Breathing Interventions",
+    "difficulty": "Immediate",
+    "duration_min": 5
+  },
+  {
+    "id": "KB-FEA-08",
+    "category": "Fear & Anxiety Regulation",
+    "title": "Grounding & Worry Containment for Fear",
+    "target_drivers": [
+      "anxiety_score",
+      "pss_q1",
+      "hrv_sdnn"
+    ],
+    "target_emotions": [
+      "fear"
+    ],
+    "stress_levels": [
+      "High",
+      "Severe"
+    ],
+    "summary": "5-4-3-2-1 sensory grounding to interrupt the fear spiral detected in facial expressions, followed by scheduled worry time.",
+    "protocol": [
+      "1. Name 5 things you can see, 4 you can touch, 3 you can hear, 2 you can smell, 1 you can taste.",
+      "2. Place both palms on a solid surface and press firmly for 10 seconds.",
+      "3. Write the fear down and schedule a 15-minute 'worry window' later today.",
+      "4. During the worry window, problem-solve only what is within your control."
+    ],
+    "evidence_base": "Journal of Anxiety Disorders - Grounding Techniques for Panic & Fear",
+    "difficulty": "Immediate",
+    "duration_min": 7
+  },
+  {
+    "id": "KB-SAD-09",
+    "category": "Sadness & Mood Elevation",
+    "title": "Behavioural Activation for Low Mood",
+    "target_drivers": [
+      "sentiment_score",
+      "anxiety_score",
+      "physical_activity_min"
+    ],
+    "target_emotions": [
+      "sadness"
+    ],
+    "stress_levels": [
+      "Moderate",
+      "High"
+    ],
+    "summary": "Counteracts sadness detected via facial analysis with small, rewarding activities that rebuild behavioural momentum.",
+    "protocol": [
+      "1. Schedule one tiny pleasant activity today (10 minutes, e.g. walk outdoors, phone a friend).",
+      "2. Pair it with an achievement activity (tidying one shelf, one email).",
+      "3. Notice and log how your mood shifts 15 minutes afterwards.",
+      "4. Repeat tomorrow; stack two activities once one feels easy."
+    ],
+    "evidence_base": "Behaviour Research & Therapy - Behavioural Activation for Depression & Sadness",
+    "difficulty": "Easy",
+    "duration_min": 15
+  },
+  {
+    "id": "KB-SUR-10",
+    "category": "Surprise & Overstimulation Recovery",
+    "title": "Sensory Downtime After Overstimulation",
+    "target_drivers": [
+      "screen_time_hours",
+      "work_hours",
+      "anxiety_score"
+    ],
+    "target_emotions": [
+      "surprise"
+    ],
+    "stress_levels": [
+      "Moderate"
+    ],
+    "summary": "For surprise-driven arousal spikes, a structured sensory reset reduces cognitive load and stabilizes stress hormones.",
+    "protocol": [
+      "1. Step away from screens for 10 minutes.",
+      "2. Dim lighting, silence or low ambient sound, and slow, rhythmic breathing.",
+      "3. Drink water and take three long, sighing breaths.",
+      "4. Return to the task with a single clear priority."
+    ],
+    "evidence_base": "International Journal of Environmental Research & Public Health - Digital Detox & Arousal Regulation",
+    "difficulty": "Easy",
+    "duration_min": 10
+  },
+  {
+    "id": "KB-DIS-11",
+    "category": "Disgust & Somatic Release",
+    "title": "Somatic Release for Disgust & Tension",
+    "target_drivers": [
+      "composite_strain_index",
+      "sentiment_score"
+    ],
+    "target_emotions": [
+      "disgust"
+    ],
+    "stress_levels": [
+      "High"
+    ],
+    "summary": "Addresses the tension and revulsion response signalled by disgust expressions through progressive muscle relaxation.",
+    "protocol": [
+      "1. Tense each muscle group (jaw, shoulders, fists) for 5 seconds, then release fully.",
+      "2. Move from head to feet, noticing the difference between tension and relaxation.",
+      "3. Take 3 slow breaths, exhaling through pursed lips.",
+      "4. Refocus attention on a pleasant, neutral sensory detail in the room."
+    ],
+    "evidence_base": "Applied Psychophysiology & Biofeedback - Progressive Muscle Relaxation Efficacy",
+    "difficulty": "Easy",
+    "duration_min": 12
+  },
+  {
+    "id": "KB-HAP-12",
+    "category": "Positive Emotion Preservation",
+    "title": "Savoring & Positive Emotion Amplification",
+    "target_drivers": [
+      "sentiment_score",
+      "total_pss"
+    ],
+    "target_emotions": [
+      "happiness"
+    ],
+    "stress_levels": [
+      "Low"
+    ],
+    "summary": "When facial analysis detects happiness, capitalize on it: savoring lengthens positive affect and builds resilience.",
+    "protocol": [
+      "1. Pause and deliberately notice the positive moment for 30 seconds.",
+      "2. Share it with someone or write it down in one sentence.",
+      "3. Reflect on what made it possible and plan a similar micro-moment tomorrow.",
+      "4. Use the positive state to attempt one moderate challenge."
+    ],
+    "evidence_base": "Journal of Positive Psychology - Savoring and Subjective Well-Being",
+    "difficulty": "Easy",
+    "duration_min": 5
+  }
+]
