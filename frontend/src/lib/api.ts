@@ -1,6 +1,7 @@
 import axios, { AxiosError } from 'axios';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+export { API_BASE_URL };
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -134,6 +135,142 @@ export const api = {
     return res.data;
   },
 
+  // Natural conversation bot (text + voice; stress detection stays separate)
+  conversationStart: async (user_name?: string) => {
+    const res = await apiClient.post('/conversation/start', { user_name });
+    return res.data;
+  },
+
+  conversationMessage: async (args: {
+    session_id: string; message: string;
+    stress_context?: {
+      stress_score?: number; stress_level?: string; confidence?: number;
+      trend?: string; voice_indicators?: Record<string, unknown>; webcam_indicators?: Record<string, unknown>;
+    };
+    use_llm?: boolean;
+  }) => {
+    const res = await apiClient.post('/conversation/message', {
+      session_id: args.session_id,
+      message: args.message,
+      ...(args.stress_context ? { stress_context: args.stress_context } : {}),
+      ...(args.use_llm !== undefined ? { use_llm: args.use_llm } : {}),
+    });
+    return res.data;
+  },
+
+  conversationHistory: async (session_id: string) => {
+    const res = await apiClient.get(`/conversation/${session_id}`);
+    return res.data;
+  },
+
+  conversationEnd: async (session_id: string) => {
+    const res = await apiClient.delete(`/conversation/${session_id}`);
+    return res.data;
+  },
+
+  // Unified multimodal assessment (questionnaire + voice + facial → one result)
+  multimodalAssess: async (args: {
+    assessment_id?: string; voice_audio_base64?: string; voice_transcript?: string;
+    facial_image?: string; facial_reading_id?: string;
+  }) => {
+    const res = await apiClient.post('/multimodal/assess', {
+      ...(args.assessment_id ? { assessment_id: args.assessment_id } : {}),
+      ...(args.voice_audio_base64 ? { voice_audio_base64: args.voice_audio_base64 } : {}),
+      ...(args.voice_transcript ? { voice_transcript: args.voice_transcript } : {}),
+      ...(args.facial_image ? { facial_image: args.facial_image } : {}),
+      ...(args.facial_reading_id ? { facial_reading_id: args.facial_reading_id } : {}),
+    });
+    return res.data;
+  },
+
+  multimodalHistory: async (limit = 10) => {
+    const res = await apiClient.get(`/multimodal/?limit=${limit}`);
+    return res.data;
+  },
+
+  multimodalGet: async (id: string) => {
+    const res = await apiClient.get(`/multimodal/${id}`);
+    return res.data;
+  },
+
+  // Synchronized assessment sessions (voice + face + questionnaire in parallel)
+  mmSessionStart: async () => {
+    const res = await apiClient.post('/multimodal/sessions', {});
+    return res.data;
+  },
+
+  mmSessionState: async (session_id: string) => {
+    const res = await apiClient.get(`/multimodal/sessions/${session_id}`);
+    return res.data;
+  },
+
+  mmSessionVoice: async (session_id: string, args: { audio_base64?: string; transcript?: string }) => {
+    const res = await apiClient.post(`/multimodal/sessions/${session_id}/voice`, {
+      ...(args.audio_base64 ? { audio_base64: args.audio_base64 } : {}),
+      ...(args.transcript ? { transcript: args.transcript } : {}),
+    });
+    return res.data;
+  },
+
+  mmSessionFace: async (session_id: string, args: { image_base64?: string; reading_id?: string }) => {
+    const res = await apiClient.post(`/multimodal/sessions/${session_id}/face`, {
+      ...(args.image_base64 ? { image_base64: args.image_base64 } : {}),
+      ...(args.reading_id ? { reading_id: args.reading_id } : {}),
+    });
+    return res.data;
+  },
+
+  mmSessionQuestionnaire: async (session_id: string, assessment_id: string) => {
+    const res = await apiClient.post(`/multimodal/sessions/${session_id}/questionnaire`, { assessment_id });
+    return res.data;
+  },
+
+  mmSessionLive: async (session_id: string) => {
+    const res = await apiClient.get(`/multimodal/sessions/${session_id}/live`);
+    return res.data;
+  },
+
+  mmSessionFinalize: async (session_id: string) => {
+    const res = await apiClient.post(`/multimodal/sessions/${session_id}/finalize`, {});
+    return res.data;
+  },
+
+  mmSessionCancel: async (session_id: string) => {
+    const res = await apiClient.delete(`/multimodal/sessions/${session_id}`);
+    return res.data;
+  },
+
+  // Server-side speech-to-text fallback (multipart upload; keys stay server-side)
+  transcribeStatus: async () => {
+    const res = await apiClient.get('/voice/transcribe/status');
+    return res.data as { provider: string; configured: boolean; max_mb: number; note: string };
+  },
+
+  transcribeVoice: async (blob: Blob): Promise<{
+    transcript: string; provider: string; duration_seconds: number; warning?: string;
+  }> => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    const form = new FormData();
+    const ext = blob.type.includes('mp4') ? 'm4a'
+      : blob.type.includes('ogg') ? 'ogg'
+      : blob.type.includes('wav') ? 'wav' : 'webm';
+    form.append('audio', blob, `voice.${ext}`);
+    // fetch (not axios): lets the browser set the multipart boundary itself.
+    const res = await fetch(`${API_BASE_URL}/voice/transcribe`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: form,
+    });
+    if (!res.ok) {
+      let detail = '';
+      try { detail = (await res.json())?.detail || ''; } catch { /* ignore */ }
+      const err: any = new Error(detail || `Transcription failed (HTTP ${res.status})`);
+      err.status = res.status;
+      throw err;
+    }
+    return res.json();
+  },
+
   // Facial Expression Analysis
   analyzeFacial: async (image: string, source = 'webcam') => {
     const res = await apiClient.post('/facial/analyze', { image, source });
@@ -165,6 +302,18 @@ export const api = {
   // Reports
   downloadCSVReport: async (): Promise<Blob> => {
     const res = await apiClient.get('/reports/csv', { responseType: 'blob' });
+    return res.data;
+  },
+
+  // Voice Analysis
+  analyzeVoice: async (audioBase64: string, sampleRate = 16000, duration?: number, transcript?: string, sessionId?: string) => {
+    const res = await apiClient.post('/voice/analyze', {
+      audio_base64: audioBase64,
+      sample_rate: sampleRate,
+      ...(duration !== undefined ? { duration: Math.min(Math.max(duration, 0.1), 180) } : {}),
+      ...(transcript ? { transcript } : {}),
+      ...(sessionId ? { session_id: sessionId } : {}),
+    });
     return res.data;
   },
 };

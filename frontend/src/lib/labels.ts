@@ -99,6 +99,7 @@ export const LEVEL_LABELS: Record<string, string> = {
   Moderate: 'Moderate',
   High: 'High',
   Severe: 'Severe',
+  'Very High': 'Very High',
 };
 
 // Plain explanations of stress levels
@@ -107,4 +108,5 @@ export const LEVEL_EXPLANATIONS: Record<string, string> = {
   Moderate: 'You are handling things, but a little extra care could help.',
   High: 'Stress is building up. Try one of the coping exercises below.',
   Severe: 'You are under heavy strain. Please consider one of the exercises below and talk to someone you trust.',
+  'Very High': 'Your stress indicators appear very elevated. Slow down, try a calming exercise, and reach out to someone you trust.',
 };

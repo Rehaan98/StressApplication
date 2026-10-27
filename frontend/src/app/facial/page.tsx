@@ -10,6 +10,7 @@ import {
   ScanFace, Camera, CameraOff, AlertTriangle, ShieldCheck, Activity, Timer, Sparkles, RefreshCw,
 } from 'lucide-react';
 import { api } from '@/lib/api';
+import { notifyDataUpdated, useLiveData } from '@/lib/liveData';
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from 'recharts';
@@ -78,12 +79,18 @@ export default function FacialAnalysisPage() {
   const [readings, setReadings] = useState(0);
   const [sessionAvg, setSessionAvg] = useState<number | null>(null);
 
-  // Load existing history on mount
-  useEffect(() => {
-    api.getFacialHistory(50)
-      .then((res) => setHistory(res.items ?? []))
-      .catch(() => {});
+  const loadHistory = useCallback(async () => {
+    try {
+      const res = await api.getFacialHistory(50);
+      setHistory(res.items ?? []);
+    } catch {
+      // Keep the last known history if a refresh fails.
+    }
   }, []);
+
+  // Load existing history on mount and keep it synced with new scans.
+  useEffect(() => { loadHistory(); }, [loadHistory]);
+  useLiveData(loadHistory, { intervalMs: 30000 });
 
   const stopCamera = useCallback(() => {
     // Cancel any pending warm-up arm timer first, so an interval can never
@@ -146,6 +153,7 @@ export default function FacialAnalysisPage() {
       });
       setHistory((prev) => [item, ...prev].slice(0, 50));
       setReadings((r) => r + 1);
+      notifyDataUpdated();
     } catch (err: any) {
       const detail = err?.response?.data?.detail;
       if (detail === 'No face detected in the frame.') {

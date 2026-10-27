@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
 import { Sidebar } from '@/components/Sidebar';
@@ -10,9 +10,11 @@ import { StressGauge } from '@/components/StressGauge';
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from 'recharts';
-import { Activity, Heart, Moon, Sun, ClipboardList, Sparkles, Eye, ScanFace } from 'lucide-react';
+import { Activity, Heart, Moon, Sun, ClipboardList, Sparkles, Eye, ScanFace, HeartHandshake, Layers } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
+import { useLiveData } from '@/lib/liveData';
+import { VoicePanel } from "@/components/VoicePanel";
 
 interface Analytics {
   total_assessments: number;
@@ -26,6 +28,11 @@ interface Analytics {
   latest_facial_emotion?: string | null;
   latest_facial_stress_level?: string | null;
   latest_facial_stress_score?: number | null;
+  total_multimodal_assessments?: number;
+  latest_multimodal_modalities?: string[] | null;
+  latest_multimodal_category?: string | null;
+  latest_multimodal_score?: number | null;
+  latest_multimodal_at?: string | null;
 }
 
 interface FacialHistoryItem {
@@ -51,16 +58,26 @@ export default function DashboardPage() {
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [facialHistory, setFacialHistory] = useState<FacialHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const inFlight = useRef(false);
 
-  useEffect(() => {
-    Promise.allSettled([
-      api.getUserAnalytics(),
-      api.getFacialHistory(30),
-    ]).then(([a, f]) => {
+  const load = useCallback(async () => {
+    if (inFlight.current) return;
+    inFlight.current = true;
+    try {
+      const [a, f] = await Promise.allSettled([
+        api.getUserAnalytics(),
+        api.getFacialHistory(30),
+      ]);
       if (a.status === 'fulfilled') setAnalytics(a.value);
       if (f.status === 'fulfilled') setFacialHistory(f.value.items ?? []);
-    }).finally(() => setLoading(false));
+    } finally {
+      inFlight.current = false;
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => { load(); }, [load]);
+  useLiveData(load, { intervalMs: 30000 });
 
   const stressLevel =
     analytics?.latest_stress_level && analytics.latest_stress_level !== 'Normal'
@@ -139,6 +156,38 @@ export default function DashboardPage() {
                 icon={Sun}
                 color="indigo"
               />
+            </div>
+          )}
+
+          {/* Latest synchronized combined result */}
+          {analytics?.latest_multimodal_category && (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl glass-morphism border border-cyan-500/30">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+                  <Layers className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-white">
+                    Latest Saved Check:{" "}
+                    <span className={`
+                      ${analytics.latest_multimodal_category === 'Low' ? 'text-emerald-400'
+                        : analytics.latest_multimodal_category === 'Moderate' ? 'text-amber-400'
+                        : analytics.latest_multimodal_category === 'High' ? 'text-orange-400'
+                        : 'text-rose-400'}`}>
+                      {analytics.latest_multimodal_category} · {analytics.latest_multimodal_score}/100
+                    </span>
+                  </p>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    {(analytics.latest_multimodal_modalities?.length ?? 0) > 0
+                      ? `From ${analytics.latest_multimodal_modalities!.join(' + ')}`
+                      : 'From saved voice, face, or questionnaire inputs'}
+                    {" · "}{analytics.total_multimodal_assessments ?? 0} saved check{analytics.total_multimodal_assessments === 1 ? '' : 's'} so far
+                  </p>
+                </div>
+              </div>
+              <Link href="/analytics" className="text-xs font-bold px-4 py-2 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/30 transition-all text-center">
+                See Check Trend →
+              </Link>
             </div>
           )}
 
@@ -301,6 +350,27 @@ export default function DashboardPage() {
                 </Link>
               </div>
             </GlassCard>
+          </div>
+
+          {/* Voice Assistance Panel */}
+          <VoicePanel />
+
+          {/* Natural conversation companion teaser */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl glass-morphism border border-teal-500/30">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-teal-500/15 text-teal-300 border border-teal-500/30">
+                <HeartHandshake className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-white">Need to talk it through?</p>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Chat or speak with your Calm Companion — breathing, grounding, and a listening ear.
+                </p>
+              </div>
+            </div>
+            <Link href="/conversation" className="text-xs font-bold px-4 py-2 rounded-xl bg-teal-500/20 text-teal-200 border border-teal-500/40 hover:bg-teal-500/30 transition-all text-center">
+              Talk to Companion →
+            </Link>
           </div>
 
           {/* Recent Timeline */}

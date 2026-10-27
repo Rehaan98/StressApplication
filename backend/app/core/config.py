@@ -52,6 +52,19 @@ class Settings(BaseSettings):
         )
     )
 
+    # Server-side speech-to-text fallback (keys stay in the backend; the
+    # frontend never sees them). "none" = voice typing unavailable server-side.
+    STT_PROVIDER: str = "none"  # "none" | "local" | "openai"
+    STT_MODEL: str = "tiny.en"  # faster-whisper model for the local provider
+    STT_DEVICE: str = "cpu"
+    STT_COMPUTE: str = "int8"
+    STT_MODEL_DIR: str = ""  # custom model dir; empty = HF cache default
+    STT_OPENAI_API_KEY: str = ""
+    STT_OPENAI_MODEL: str = "whisper-1"
+    STT_OPENAI_BASE_URL: str = "https://api.openai.com/v1"
+    STT_TIMEOUT_S: float = 30.0
+    STT_MAX_MB: float = 10.0
+
     @model_validator(mode="after")
     def _merge_legacy_cors(self) -> "Settings":
         if self.ALLOWED_ORIGINS:

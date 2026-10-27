@@ -5,6 +5,7 @@ from backend.app.models.explainability_log import ExplainabilityLog
 from backend.app.models.rag_coping_log import RAGCopingLog
 from backend.app.models.audit_log import AuditLog
 from backend.app.models.facial_analysis import FacialAnalysis
+from backend.app.models.multimodal import MultimodalAssessment
 
 __all__ = [
     "User",
@@ -14,5 +15,6 @@ __all__ = [
     "ExplainabilityLog",
     "RAGCopingLog",
     "AuditLog",
-    "FacialAnalysis"
+    "FacialAnalysis",
+    "MultimodalAssessment"
 ]

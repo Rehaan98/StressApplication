@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, Suspense } from 'react';
+import React, { useCallback, useEffect, useRef, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Navbar } from '@/components/Navbar';
 import { Sidebar } from '@/components/Sidebar';
@@ -9,8 +9,10 @@ import { StressGauge } from '@/components/StressGauge';
 import { ShapBarChart } from '@/components/ShapBarChart';
 import { LimeImpactList } from '@/components/LimeImpactList';
 import { RagInterventionCard } from '@/components/RagInterventionCard';
+import { MultimodalPanel } from '@/components/MultimodalPanel';
 import { Activity, Sparkles, Eye, TrendingUp, AlertCircle, ClipboardList } from 'lucide-react';
 import { api } from '@/lib/api';
+import { useLiveData } from '@/lib/liveData';
 import Link from 'next/link';
 
 const STRESS_GAUGE_MAP: Record<string, number> = {
@@ -87,83 +89,94 @@ function PredictionContent() {
   const [rag, setRag] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isDemo, setIsDemo] = useState(false);
+  const inFlight = useRef(false);
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true);
+  const load = useCallback(async (showSpinner = false) => {
+    if (inFlight.current) return;
+    inFlight.current = true;
+    if (showSpinner) setLoading(true);
 
-      // Use the requested prediction, or load the user's latest prediction
-      // when arriving from the sidebar without a query parameter.
-      let targetPredId = predId && predId !== 'demo' ? predId : null;
-      if (!targetPredId) {
-        try {
-          const latest = await api.listPredictions(1);
-          targetPredId = latest?.[0]?.id ?? null;
-        } catch {
-          targetPredId = null;
-        }
+    const hydrate = async (id: string): Promise<boolean> => {
+      // Primary: full prediction detail endpoint (real confidence + probabilities)
+      const [detailRes, ragRes] = await Promise.allSettled([
+        api.getPrediction(id),
+        api.queryRAG(id),
+      ]);
+
+      const detail: any = detailRes.status === 'fulfilled' ? detailRes.value : null;
+      const ragResult: any = ragRes.status === 'fulfilled' ? ragRes.value : null;
+
+      if (detail) {
+        setResult({
+          id: detail.id,
+          stress_level: detail.stress_level ?? 'Moderate',
+          confidence_score: detail.confidence_score ?? 0,
+          class_probabilities: detail.class_probabilities ?? {},
+        });
+        setXai({
+          top_drivers: detail.shap_explanation?.top_drivers ?? [],
+          lime_rules: detail.lime_explanation?.lime_rules ?? [],
+        });
+        setRag(ragResult?.interventions ?? detail.rag_interventions ?? []);
+        setIsDemo(false);
+        return true;
       }
 
-      if (targetPredId) {
-        try {
-          // Primary: full prediction detail endpoint (real confidence + probabilities)
-          const [detailRes, ragRes] = await Promise.allSettled([
-            api.getPrediction(targetPredId),
-            api.queryRAG(targetPredId),
-          ]);
-
-          const detail: any = detailRes.status === 'fulfilled' ? detailRes.value : null;
-          const ragResult: any = ragRes.status === 'fulfilled' ? ragRes.value : null;
-
-          if (detail) {
-            setResult({
-              id: detail.id,
-              stress_level: detail.stress_level ?? 'Moderate',
-              confidence_score: detail.confidence_score ?? 0,
-              class_probabilities: detail.class_probabilities ?? {},
-            });
-            setXai({
-              top_drivers: detail.shap_explanation?.top_drivers ?? [],
-              lime_rules: detail.lime_explanation?.lime_rules ?? [],
-            });
-          } else {
-            setResult(DEMO_RESULT);
-            setIsDemo(true);
-          }
-
-          setRag(ragResult?.interventions ?? detail?.rag_interventions ?? []);
-        } catch {
-          // Fallback: compose from the explainability endpoint
-          try {
-            const xaiData: any = await api.getExplainability(targetPredId);
-            setResult({
-              id: targetPredId,
-              stress_level: xaiData.predicted_class ?? 'Moderate',
-              confidence_score: 0,
-              class_probabilities: {},
-            });
-            setXai({
-              top_drivers: xaiData.top_drivers ?? [],
-              lime_rules: xaiData.lime_rules ?? [],
-            });
-          } catch {
-            setResult(DEMO_RESULT);
-            setIsDemo(true);
-          }
-        }
-      } else {
-        // No real id — show demo data
-        setTimeout(() => {
-          setResult(DEMO_RESULT);
-          setIsDemo(true);
-        }, 600);
+      // Fallback: compose from the explainability endpoint
+      try {
+        const xaiData: any = await api.getExplainability(id);
+        setResult({
+          id,
+          stress_level: xaiData.predicted_class ?? 'Moderate',
+          confidence_score: 0,
+          class_probabilities: {},
+        });
+        setXai({
+          top_drivers: xaiData.top_drivers ?? [],
+          lime_rules: xaiData.lime_rules ?? [],
+        });
+        setIsDemo(false);
+        return true;
+      } catch {
+        return false;
       }
-
-      setLoading(false);
     };
 
-    load();
+    try {
+      // Use the requested prediction, or load the user's latest prediction
+      // when arriving from the sidebar without a query parameter.
+      let latestId: string | null = null;
+      try {
+        const latest = await api.listPredictions(1);
+        latestId = latest?.[0]?.id ?? null;
+      } catch {
+        latestId = null;
+      }
+
+      const requestedId = predId && predId !== 'demo' ? predId : null;
+      const targetId = requestedId ?? latestId;
+      const loaded = targetId ? await hydrate(targetId) : false;
+      const loadedLatest = !loaded && latestId && latestId !== targetId
+        ? await hydrate(latestId)
+        : false;
+
+      if (!loaded && !loadedLatest) {
+        setResult(DEMO_RESULT);
+        setXai({
+          top_drivers: DEMO_RESULT.shap_explanation.top_drivers,
+          lime_rules: DEMO_RESULT.lime_explanation.lime_rules,
+        });
+        setRag(DEMO_RESULT.rag_interventions);
+        setIsDemo(true);
+      }
+    } finally {
+      inFlight.current = false;
+      setLoading(false);
+    }
   }, [predId]);
+
+  useEffect(() => { load(); }, [load]);
+  useLiveData(() => load(false), { intervalMs: 30000 });
 
   if (loading) {
     return (
@@ -198,11 +211,19 @@ function PredictionContent() {
           <span className={`px-4 py-1.5 rounded-full text-sm font-bold border uppercase tracking-wider ${badge}`}>
             {level} Risk
           </span>
+          {!isDemo && result?.id && (
+            <Link href={`/explainability?id=${result.id}`} className="px-4 py-2 rounded-xl text-xs font-bold bg-cyan-600/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-600/35 flex items-center gap-1.5 transition-all">
+              <Eye className="w-4 h-4" /> Why This Score
+            </Link>
+          )}
           <Link href="/assessment" className="px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 hover:bg-indigo-600/50 flex items-center gap-1.5 transition-all">
             <ClipboardList className="w-4 h-4" /> Take Another Check
           </Link>
         </div>
       </div>
+
+      {/* Unified multimodal assessment (questionnaire + voice + face → one result) */}
+      <MultimodalPanel />
 
       {/* Confidence + Class Probabilities */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

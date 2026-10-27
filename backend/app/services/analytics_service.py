@@ -12,6 +12,7 @@ from sqlalchemy import func
 from backend.app.models.assessment import StressAssessment
 from backend.app.models.prediction import Prediction
 from backend.app.models.facial_analysis import FacialAnalysis
+from backend.app.models.multimodal import MultimodalAssessment
 from backend.app.models.user import User
 
 EVAL_METRICS_PATH = os.path.abspath(
@@ -46,6 +47,13 @@ def _load_model_performance() -> Dict[str, Any]:
         "xai_status": "Active (SHAP & LIME)"
     }
 
+def _as_utc(value):
+    """SQLite may return naive datetimes; compare everything in UTC."""
+    if value is None:
+        return None
+    return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+
+
 class AnalyticsService:
     @staticmethod
     async def get_user_dashboard_analytics(db: AsyncSession, user_id: str) -> Dict[str, Any]:
@@ -64,26 +72,63 @@ class AnalyticsService:
         avg_hrv = float(sum(a.hrv_sdnn for a in assessments) / total_assessments) if total_assessments > 0 else 0.0
         avg_sleep = float(sum(a.sleep_hours for a in assessments) / total_assessments) if total_assessments > 0 else 0.0
         
-        stress_counts = {"Low": 0, "Moderate": 0, "High": 0, "Severe": 0}
+        # Synchronized voice + face + questionnaire results. A questionnaire
+        # can be attached to several saved checks; use the newest check time so
+        # every trend reflects when the user last reviewed that result.
+        stmt_mm = (
+            select(MultimodalAssessment)
+            .where(MultimodalAssessment.user_id == user_id)
+            .order_by(MultimodalAssessment.created_at.desc())
+        )
+        res_mm = await db.execute(stmt_mm)
+        multimodal = list(res_mm.scalars().all())
+        latest_mm = multimodal[0] if multimodal else None
+        if latest_mm and latest_mm.created_at and "questionnaire" in (latest_mm.available_modalities or []):
+            latest_pred_at = _as_utc(predictions[0].created_at) if predictions else None
+            latest_mm_at = _as_utc(latest_mm.created_at)
+            if latest_mm_at and (latest_pred_at is None or latest_mm_at > latest_pred_at):
+                latest_stress_level = latest_mm.overall_category
+        latest_mm_by_assessment = {}
+        for m in multimodal:
+            if m.assessment_id and m.created_at:
+                latest_mm_by_assessment.setdefault(m.assessment_id, m)
+
+        # Map predictions to assessment timeline. Predictions are newest-first,
+        # so setdefault keeps the latest prediction when an assessment has more
+        # than one (for example after re-running a check).
+        pred_map = {}
         for p in predictions:
-            if p.stress_level in stress_counts:
-                stress_counts[p.stress_level] += 1
-                
-        # Map predictions to assessment timeline
-        pred_map = {p.assessment_id: p for p in predictions}
-        timeline = []
-        for a in reversed(assessments[:15]):
+            pred_map.setdefault(p.assessment_id, p)
+        stress_counts = {"Low": 0, "Moderate": 0, "High": 0, "Severe": 0}
+        for a in assessments:
+            mm = latest_mm_by_assessment.get(a.id)
             p = pred_map.get(a.id)
+            level = mm.overall_category if mm else (p.stress_level if p else "Moderate")
+            if level in stress_counts:
+                stress_counts[level] += 1
+        timeline = []
+        for a in assessments:
+            p = pred_map.get(a.id)
+            effective_at = _as_utc(a.created_at)
+            mm = latest_mm_by_assessment.get(a.id)
+            mm_at = _as_utc(mm.created_at) if mm else None
+            if mm_at and (effective_at is None or mm_at > effective_at):
+                effective_at = mm_at
             timeline.append({
-                "date": a.created_at.strftime("%b %d"),
-                "stress_level": p.stress_level if p else "Moderate",
+                "date": effective_at.strftime("%b %d") if effective_at else "",
+                "stress_level": mm.overall_category if mm else (p.stress_level if p else "Moderate"),
                 "total_pss": a.total_pss,
                 "heart_rate": a.heart_rate,
                 "hrv_sdnn": a.hrv_sdnn,
                 "sleep_hours": a.sleep_hours,
-                "confidence_score": p.confidence_score if p else 0.85
+                "confidence_score": p.confidence_score if p else 0.85,
+                "_effective_at": effective_at,
             })
-            
+        timeline.sort(key=lambda point: point["_effective_at"] or datetime.min.replace(tzinfo=timezone.utc))
+        timeline = timeline[-15:]
+        for point in timeline:
+            point.pop("_effective_at", None)
+
         # Facial expression analysis summary
         stmt_facial = select(FacialAnalysis).where(FacialAnalysis.user_id == user_id).order_by(FacialAnalysis.created_at.desc())
         res_facial = await db.execute(stmt_facial)
@@ -93,6 +138,16 @@ class AnalyticsService:
         for f in facial:
             if f.stress_level in facial_levels:
                 facial_levels[f.stress_level] += 1
+
+        multimodal_trends = [
+            {
+                "date": m.created_at.strftime("%b %d") if m.created_at else "",
+                "category": m.overall_category,
+                "score": round(float(m.overall_score or 0) * 100, 1),
+                "modalities": list(m.available_modalities or []),
+            }
+            for m in reversed(multimodal[:15])
+        ]
 
         return {
             "total_assessments": total_assessments,
@@ -107,6 +162,13 @@ class AnalyticsService:
             "latest_facial_stress_level": latest_facial.stress_level if latest_facial else None,
             "latest_facial_stress_score": latest_facial.stress_score if latest_facial else None,
             "facial_stress_distribution": facial_levels,
+            "total_multimodal_assessments": len(multimodal),
+            "latest_multimodal_id": latest_mm.id if latest_mm else None,
+            "latest_multimodal_modalities": (latest_mm.available_modalities or []) if latest_mm else [],
+            "latest_multimodal_category": latest_mm.overall_category if latest_mm else None,
+            "latest_multimodal_score": round(float(latest_mm.overall_score or 0) * 100, 1) if latest_mm else None,
+            "latest_multimodal_at": latest_mm.created_at.isoformat() if latest_mm and latest_mm.created_at else None,
+            "multimodal_trends": multimodal_trends,
         }
 
     @staticmethod

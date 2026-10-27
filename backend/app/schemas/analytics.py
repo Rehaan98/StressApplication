@@ -14,6 +14,12 @@ class UserStressTrend(BaseModel):
     sleep_hours: float
     confidence_score: float
 
+class MultimodalTrend(BaseModel):
+    date: str
+    category: str
+    score: float
+    modalities: List[str] = []
+
 class AnalyticsOverviewResponse(BaseModel):
     total_assessments: int
     latest_stress_level: str
@@ -27,6 +33,13 @@ class AnalyticsOverviewResponse(BaseModel):
     latest_facial_stress_level: Optional[str] = None
     latest_facial_stress_score: Optional[float] = None
     facial_stress_distribution: Optional[Dict[str, int]] = None
+    total_multimodal_assessments: Optional[int] = 0
+    latest_multimodal_id: Optional[str] = None
+    latest_multimodal_modalities: Optional[List[str]] = None
+    latest_multimodal_category: Optional[str] = None
+    latest_multimodal_score: Optional[float] = None
+    latest_multimodal_at: Optional[str] = None
+    multimodal_trends: Optional[List[MultimodalTrend]] = None
 
 class AdminAnalyticsResponse(BaseModel):
     total_users: int

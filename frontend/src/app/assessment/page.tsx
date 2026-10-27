@@ -6,6 +6,7 @@ import { Navbar } from '@/components/Navbar';
 import { Sidebar } from '@/components/Sidebar';
 import { GlassCard } from '@/components/GlassCard';
 import { api } from '@/lib/api';
+import { notifyDataUpdated } from '@/lib/liveData';
 import { ClipboardList, ChevronRight, ChevronLeft, Send, CheckCircle2 } from 'lucide-react';
 
 const PSS_QUESTIONS = [
@@ -87,6 +88,7 @@ export default function AssessmentPage() {
       } as any);
 
       const prediction = await api.runPrediction(assessment.id);
+      notifyDataUpdated(true);
       router.push(`/predictions?id=${prediction.id}`);
     } catch (e: any) {
       setError(e.response?.data?.detail || 'Failed to submit assessment. Please try again.');

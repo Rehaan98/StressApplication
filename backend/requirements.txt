@@ -24,3 +24,5 @@ onnxruntime>=1.17.0
 httpx>=0.26.0,<0.28
 pytest>=8.0.0
 pytest-asyncio>=0.23.0
+# Local speech-to-text fallback (server-side Whisper, no API key needed)
+faster-whisper==1.0.3

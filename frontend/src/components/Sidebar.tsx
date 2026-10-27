@@ -3,11 +3,12 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ClipboardList, Activity, Eye, Sparkles, BarChart2, ShieldCheck, Settings, LogOut, ScanFace } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, Activity, Eye, Sparkles, BarChart2, ShieldCheck, Settings, LogOut, ScanFace, HeartHandshake } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 
 const NAV_ITEMS = [
   { label: 'Home', href: '/dashboard', icon: LayoutDashboard },
+  { label: 'Talk to Companion', href: '/conversation', icon: HeartHandshake },
   { label: 'Face Stress Scan', href: '/facial', icon: ScanFace },
   { label: 'Stress Check', href: '/assessment', icon: ClipboardList },
   { label: 'My Results', href: '/predictions', icon: Activity },
